@@ -17,7 +17,7 @@ const app = express();
 // Middleware
 app.use(cors(
     {
-        origin:process.env.CLIENT_URL || 'https://webpe-finance.netlify.app',
+        origin:'https://webpe-finance.netlify.app',
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         allowedHeaders: ['Content-Type' , 'Authorization'],
         credentials: true
