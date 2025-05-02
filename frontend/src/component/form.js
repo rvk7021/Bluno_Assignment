@@ -288,7 +288,8 @@ export default function UserApplicationForm({ onSuccess, onCancel, mail }) {
         
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch('http://localhost:5000/api/applications/submit', {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/applications/submit`
+, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

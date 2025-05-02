@@ -38,7 +38,7 @@ export default function StudentDashboard() {
                 throw new Error("Authentication token not found.");
             }
 
-            const response = await fetch('http://localhost:5000/api/applications/status', {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/applications/status`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,

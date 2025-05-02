@@ -43,7 +43,7 @@ export default function ApproverDashboard() {
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken')
-      const response = await fetch('http://localhost:5000/api/applications/all', {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/applications/all`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -65,7 +65,7 @@ export default function ApproverDashboard() {
   const handleUpdateStatus = async (applicationId, status) => {
     try {
       const token = localStorage.getItem('authToken')
-      const response = await fetch(`http://localhost:5000/api/applications/${applicationId}/status`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -56,7 +56,7 @@ export default function SignupCard() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`http://localhost:5000/api/auth/signup`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
