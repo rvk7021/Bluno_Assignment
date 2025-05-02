@@ -71,21 +71,48 @@ exports.createApplication = async (req, res) => {
         }
 
         // Check if application already exists for this student
-        const existingApplication = await Application.findOne({ studentId });
+        // const existingApplication = await Application.findOne({ studentId });
+        // if (existingApplication) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: 'Application already exists for this student'
+        //     });
+        // }
+        const conflictApplication = await Application.findOne({
+            $or: [
+                { email: req.body.email },
+                { phoneNumber: req.body.phoneNumber }
+            ],
+            studentId: { $ne: studentId }  // Different student
+        });
+        
+        if (conflictApplication) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email or phone number is already used by another student'
+            });
+        }
+        
+     
+        const existingApplication = await Application.findOne({
+            studentId,
+            status: { $in: ['pending', 'approved'] }
+        });
+        
         if (existingApplication) {
             return res.status(400).json({
                 success: false,
-                message: 'Application already exists for this student'
+                message: 'You already have a pending or approved application'
             });
         }
 
-        // Upload selfie to Cloudinary
+       
         const selfieResult = await cloudinary.uploader.upload(req.files.selfie[0].path, {
             folder: 'kyc/selfies',
             resource_type: 'image'
         });
 
-        // Upload document to Cloudinary
+      
         const documentResult = await cloudinary.uploader.upload(req.files.document[0].path, {
             folder: 'kyc/documents',
             resource_type: 'auto' // auto-detect if it's PDF or image
@@ -137,7 +164,7 @@ exports.createApplication = async (req, res) => {
 exports.getApplicationStatus = async (req, res) => {
     try {
         const studentId = req.user.userId;
-        const application = await Application.findOne({ studentId });
+        const application = await Application.find({ studentId });
 
         if (!application) {
             return res.status(404).json({
@@ -148,11 +175,12 @@ exports.getApplicationStatus = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: {
-                status: application.status,
-                remarks: application.remarks,
-                submittedAt: application.submittedAt
-            }
+            // data: {
+            //     status: application.status,
+            //     remarks: application.remarks,
+            //     submittedAt: application.submittedAt
+            // }
+            application
         });
     } catch (error) {
         console.error('Get application status error:', error);

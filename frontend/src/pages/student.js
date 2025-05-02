@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Clock, CheckCircle, XCircle, AlertCircle, LogOut } from 'lucide-react';
+import { User, FileText, Clock, CheckCircle, XCircle, AlertCircle, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import UserApplicationForm from '../component/form';
 
 export default function StudentDashboard() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [applicationStatus, setApplicationStatus] = useState(null);
+    const [applications, setApplications] = useState([]);
     const [showApplicationForm, setShowApplicationForm] = useState(false);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5); // Reduced from 7 to 5 for better mobile viewing
 
     // Fetch user data from localStorage on component mount
     useEffect(() => {
@@ -45,13 +49,17 @@ export default function StudentDashboard() {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    setApplicationStatus(null);
+                    setApplications([]);
                     return;
                 }
                 throw new Error(data.message || 'Error fetching application status');
             }
 
-            setApplicationStatus(data.data);
+            // Store the array of applications sorted by date (newest first)
+            const sortedApplications = (data.application || []).sort((a, b) => 
+                new Date(b.submittedAt) - new Date(a.submittedAt)
+            );
+            setApplications(sortedApplications);
         } catch (error) {
             console.error("Error fetching application status:", error);
         }
@@ -80,6 +88,14 @@ export default function StudentDashboard() {
         }, 2000);
     };
 
+    // Function to check if user can submit new application
+    const canSubmitNewApplication = () => {
+        if (applications.length === 0) return true;
+        
+        // Check if all applications are rejected
+        return applications.every(app => app.status.toLowerCase() === 'rejected');
+    };
+
     // Function to get status badge
     const getStatusBadge = (status) => {
         if (!status) return null;
@@ -94,27 +110,33 @@ export default function StudentDashboard() {
                 );
             case 'approved':
                 return (
-                    <div className="flex items-center text-green-600 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                    <div className="flex items-center text-green-600 bg-green-100 px-3 py-1 rounded-full text-sm">
                         <CheckCircle size={16} className="mr-1" />
                         Approved
                     </div>
                 );
             case 'rejected':
                 return (
-                    <div className="flex items-center text-red-600 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                    <div className="flex items-center text-red-600 bg-red-100 px-3 py-1 rounded-full text-sm">
                         <XCircle size={16} className="mr-1" />
                         Rejected
                     </div>
                 );
             default:
                 return (
-                    <div className="flex items-center text-blue-600 bg-blue-100 px-3 py-1 rounded-full text-sm">
+                    <div className="flex items-center text-gray-600 bg-gray-100 px-3 py-1 rounded-full text-sm">
                         <AlertCircle size={16} className="mr-1" />
                         {status}
                     </div>
                 );
         }
     };
+
+    // Pagination logic - always show pagination regardless of application count
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentApplications = applications.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.max(1, Math.ceil(applications.length / itemsPerPage));
 
     // Loading state with skeleton loader and improved animation
     if (loading) {
@@ -264,43 +286,130 @@ export default function StudentDashboard() {
                             </div>
                         </div>
 
-                        {/* Application Status Card */}
+                        {/* Applications List Card */}
                         <div className="bg-white overflow-hidden shadow-lg rounded-lg md:col-span-2 bg-gradient-to-br from-white to-blue-100">
                             <div className="px-4 py-5 sm:p-6">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h2 className="text-lg font-semibold text-blue-800">Application Status</h2>
-                                    {getStatusBadge(applicationStatus?.status)}
+                                    <h2 className="text-lg font-semibold text-blue-800">Application History</h2>
+                                    
+                                    {/* Show submit application button if all applications are rejected or no applications exist */}
+                                    {canSubmitNewApplication() && (
+                                        <button
+                                            onClick={() => setShowApplicationForm(true)}
+                                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        >
+                                            Submit Application
+                                        </button>
+                                    )}
                                 </div>
 
-                                {applicationStatus ? (
+                                {applications.length > 0 ? (
                                     <div className="space-y-4">
-                                        <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-200">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <p className="text-sm text-blue-700">Status</p>
-                                                    <p className="font-medium text-blue-900">{applicationStatus.status}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-blue-700">Submitted On</p>
-                                                    <p className="font-medium text-blue-900">
-                                                        {new Date(applicationStatus.submittedAt).toLocaleDateString()}
-                                                    </p>
+                                        {/* Application Status Message */}
+                                        {!canSubmitNewApplication() && (
+                                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4">
+                                                <p className="text-blue-800 font-medium">
+                                                    {applications.some(app => app.status.toLowerCase() === 'approved') 
+                                                        ? "Your application has been approved."
+                                                        : "Your application is pending review."}
+                                                </p>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Applications List - Responsive Table */}
+                                        <div className="overflow-x-auto rounded-lg">
+                                            <div className="inline-block min-w-full align-middle">
+                                                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                                                    <table className="min-w-full divide-y divide-blue-200">
+                                                        <thead className="bg-blue-50">
+                                                            <tr>
+                                                                <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                                                    Date
+                                                                </th>
+                                                                <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider">
+                                                                    Status
+                                                                </th>
+                                                                <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider whitespace-normal">
+                                                                    Remarks
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white divide-y divide-blue-100">
+                                                            {currentApplications.map((app, index) => (
+                                                                <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}>
+                                                                    <td className="px-3 py-4 text-sm text-blue-900">
+                                                                        {new Date(app.submittedAt).toLocaleDateString()}
+                                                                    </td>
+                                                                    <td className="px-3 py-4">
+                                                                        {getStatusBadge(app.status)}
+                                                                    </td>
+                                                                    <td className="px-3 py-4 text-sm text-blue-800 break-words whitespace-normal max-w-xs">
+                                                                        {app.remarks || "-"}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
-
-                                            {applicationStatus.remarks && (
-                                                <div className="mt-4">
-                                                    <p className="text-sm text-blue-700">Remarks</p>
-                                                    <p className="mt-1 text-blue-800">{applicationStatus.remarks}</p>
+                                        </div>
+                                        
+                                        {/* Pagination Controls - Always show even with one application */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 bg-blue-50 p-3 rounded-lg">
+                                            <div className="flex items-center gap-2 mb-2 sm:mb-0">
+                                                <span className="text-sm font-medium text-blue-700">
+                                                    Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, applications.length)} of {applications.length} application{applications.length !== 1 ? 's' : ''}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 justify-center sm:justify-end">
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                    disabled={currentPage === 1}
+                                                    className={`p-1 rounded-md ${
+                                                        currentPage === 1 
+                                                            ? 'text-blue-300 cursor-not-allowed' 
+                                                            : 'text-blue-700 hover:bg-blue-200'
+                                                    }`}
+                                                    aria-label="Previous page"
+                                                >
+                                                    <ChevronLeft size={20} />
+                                                </button>
+                                                
+                                                {/* Page Numbers - Simplified for Mobile */}
+                                                <div className="flex items-center">
+                                                    {(() => {
+                                                        // Always show current page number, even with just 1 application
+                                                        return (
+                                                            <button 
+                                                                className="h-8 w-8 rounded-md font-medium bg-blue-700 text-white shadow-sm"
+                                                                aria-current="page"
+                                                            >
+                                                                {currentPage}
+                                                            </button>
+                                                        );
+                                                    })()}
                                                 </div>
-                                            )}
+                                                
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                    disabled={currentPage === totalPages}
+                                                    className={`p-1 rounded-md ${
+                                                        currentPage === totalPages 
+                                                            ? 'text-blue-300 cursor-not-allowed' 
+                                                            : 'text-blue-700 hover:bg-blue-200'
+                                                    }`}
+                                                    aria-label="Next page"
+                                                >
+                                                    <ChevronRight size={20} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="text-center py-8">
                                         <FileText size={48} className="mx-auto text-blue-400 mb-3" />
-                                        <h3 className="text-lg font-medium text-blue-900 mb-1">No Application Found</h3>
-                                        <p className="text-blue-700 mb-4">You haven't submitted any application yet.</p>
+                                        <h3 className="text-lg font-medium text-blue-900 mb-1">No Applications Found</h3>
+                                        <p className="text-blue-700 mb-4">You haven't submitted any applications yet.</p>
                                         <button
                                             onClick={() => setShowApplicationForm(true)}
                                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

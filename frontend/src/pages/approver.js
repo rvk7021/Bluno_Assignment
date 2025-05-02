@@ -14,7 +14,7 @@ export default function ApproverDashboard() {
     selfie: false,
     document: false
   });
-  
+
   // New state for pagination and filtering
   const [currentPage, setCurrentPage] = useState(1);
   const [applicationsPerPage] = useState(7);
@@ -25,10 +25,10 @@ export default function ApproverDashboard() {
     // Get user data from localStorage
     const userData = JSON.parse(localStorage.getItem('user'));
     if (userData) {
-        setUser(userData);
+      setUser(userData);
     } else {
-        // Redirect to login if no user data found
-        window.location.href = '/login';
+      // Redirect to login if no user data found
+      window.location.href = '/login';
     }
     // Fetch applications
     fetchApplications();
@@ -46,8 +46,8 @@ export default function ApproverDashboard() {
       const response = await fetch('http://localhost:5000/api/applications/all', {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       const data = await response.json();
@@ -80,17 +80,17 @@ export default function ApproverDashboard() {
       const data = await response.json();
       if (data.success) {
         // Update the application in the state
-        setApplications(applications.map(app => 
-          app._id === applicationId 
-            ? { ...app, status, remarks, approvedAt: data.data.approvedAt } 
+        setApplications(applications.map(app =>
+          app._id === applicationId
+            ? { ...app, status, remarks, approvedAt: data.data.approvedAt }
             : app
         ));
-        
+
         // Close the details view
         setViewMode(false);
         setSelectedApp(null);
         setRemarks('');
-        
+
         // Fetch latest data
         fetchApplications();
       }
@@ -132,22 +132,22 @@ export default function ApproverDashboard() {
 
   const filterApplications = () => {
     let filteredApps = applications;
-    
+
     // Filter by status if not 'all'
     if (statusFilter !== 'all') {
       filteredApps = filteredApps.filter(app => app.status === statusFilter);
     }
-    
+
     // Filter by search term if present
     if (searchTerm) {
-      filteredApps = filteredApps.filter(app => 
-        app.studentName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      filteredApps = filteredApps.filter(app =>
+        app.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.documentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.status.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     return filteredApps;
   };
 
@@ -160,13 +160,13 @@ export default function ApproverDashboard() {
 
   // Page navigation
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   const nextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
-  
+
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -185,7 +185,7 @@ export default function ApproverDashboard() {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'pending': return 'bg-blue-100 text-blue-800';
       case 'approved': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
@@ -205,44 +205,38 @@ export default function ApproverDashboard() {
   };
 
   // Determine document preview component based on file type
-  const getDocumentPreview = (path) => {
-    if (!path) return null;
-    
-    const isPdf = path.toLowerCase().endsWith('.pdf');
-    
-    if (isPdf) {
-      return (
-        <object 
-          data={path} 
-          type="application/pdf" 
-          className="w-full h-full"
-          onLoad={() => handleImageLoad('document')}
+ // Determine document preview component based on file type
+const getDocumentPreview = (path) => {
+  if (!path) return null;
+  
+  const isPdf = path.toLowerCase().endsWith('.pdf');
+  
+  if (isPdf) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <p className="text-sm text-blue-600 mb-2">PDF document</p>
+        <a
+          href={path}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
         >
-          <div className="flex flex-col items-center justify-center h-full">
-            <p className="text-sm text-blue-600 mb-2">PDF cannot be displayed</p>
-            <a 
-              href={path} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-            >
-              Open PDF
-            </a>
-          </div>
-        </object>
-      );
-    } else {
-      return (
-        <img 
-          src={path} 
-          alt="Document Preview" 
-          className="max-h-full max-w-full object-contain"
-          onLoad={() => handleImageLoad('document')}
-          onError={() => handleImageError('document')}
-        />
-      );
-    }
-  };
+          Open PDF
+        </a>
+      </div>
+    );
+  } else {
+    return (
+      <img
+        src={path}
+        alt="Document Preview"
+        className="max-h-full max-w-full object-contain"
+        onLoad={() => handleImageLoad('document')}
+        onError={() => handleImageError('document')}
+      />
+    );
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -274,13 +268,13 @@ export default function ApproverDashboard() {
         <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="h-6 w-48 bg-blue-200 rounded animate-pulse mb-4"></div>
           <div className="h-4 w-64 bg-blue-200 rounded animate-pulse mb-6"></div>
-          
+
           <div className="h-10 w-64 bg-blue-200 rounded animate-pulse mb-6"></div>
-          
+
           <div className="bg-white shadow-lg rounded-lg p-6">
             <div className="h-6 w-32 bg-blue-200 rounded animate-pulse mb-4"></div>
             <div className="h-4 w-48 bg-blue-200 rounded animate-pulse mb-6"></div>
-            
+
             <div className="space-y-4">
               {[...Array(5)].map((_, index) => (
                 <div key={index} className="h-16 bg-blue-100 rounded animate-pulse"></div>
@@ -299,7 +293,7 @@ export default function ApproverDashboard() {
           <h1 className="text-xl font-semibold text-center text-blue-800">
             Please log in to access the dashboard
           </h1>
-          <button 
+          <button
             onClick={() => window.location.href = '/login'}
             className="w-full mt-4 px-4 py-2 text-white bg-blue-700 rounded-md hover:bg-blue-800"
           >
@@ -316,7 +310,7 @@ export default function ApproverDashboard() {
       <header className="bg-blue-800 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <button 
+            <button
               className="md:hidden mr-2 text-white"
               onClick={toggleMobileMenu}
             >
@@ -339,9 +333,9 @@ export default function ApproverDashboard() {
             <h1 className="text-xl md:text-2xl font-bold">Webpe Finance</h1>
           </div>
           <div className="flex items-center">
-          <div className="hidden md:flex items-center mr-4">
-                            <span className="text-xl font-bold text-blue-200">Welcome, {user?.username}</span>
-                        </div>
+            <div className="hidden md:flex items-center mr-4">
+              <span className="text-xl font-bold text-blue-200">Welcome, {user?.username}</span>
+            </div>
             <button
               onClick={handleLogout}
               className="flex items-center px-3 py-2 bg-blue-900 hover:bg-blue-950 rounded-lg transition-colors"
@@ -378,7 +372,7 @@ export default function ApproverDashboard() {
                   placeholder="Search by name, email, document type"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => {if (e.key === 'Enter') handleSearch()}}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center">
                   <button
@@ -392,45 +386,41 @@ export default function ApproverDashboard() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex space-x-2">
                 <button
                   onClick={() => setStatusFilter('all')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    statusFilter === 'all' 
-                      ? 'bg-blue-700 text-white' 
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${statusFilter === 'all'
+                      ? 'bg-blue-700 text-white'
                       : 'bg-white text-blue-700 hover:bg-blue-100'
-                  }`}
+                    }`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setStatusFilter('pending')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    statusFilter === 'pending' 
-                      ? 'bg-blue-700 text-white' 
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${statusFilter === 'pending'
+                      ? 'bg-blue-700 text-white'
                       : 'bg-white text-blue-700 hover:bg-blue-100'
-                  }`}
+                    }`}
                 >
                   Pending
                 </button>
                 <button
                   onClick={() => setStatusFilter('approved')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    statusFilter === 'approved' 
-                      ? 'bg-blue-700 text-white' 
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${statusFilter === 'approved'
+                      ? 'bg-blue-700 text-white'
                       : 'bg-white text-blue-700 hover:bg-blue-100'
-                  }`}
+                    }`}
                 >
                   Approved
                 </button>
                 <button
                   onClick={() => setStatusFilter('rejected')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    statusFilter === 'rejected' 
-                      ? 'bg-blue-700 text-white' 
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${statusFilter === 'rejected'
+                      ? 'bg-blue-700 text-white'
                       : 'bg-white text-blue-700 hover:bg-blue-100'
-                  }`}
+                    }`}
                 >
                   Rejected
                 </button>
@@ -448,7 +438,7 @@ export default function ApproverDashboard() {
                 {filteredApplications.length} {statusFilter !== 'all' ? statusFilter : ''} applications found
               </p>
             </div>
-            
+
             {filteredApplications.length === 0 ? (
               <div className="px-4 py-8 text-center text-blue-500">
                 No applications found for the selected criteria
@@ -531,22 +521,20 @@ export default function ApproverDashboard() {
                     <button
                       onClick={prevPage}
                       disabled={currentPage === 1}
-                      className={`relative inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md ${
-                        currentPage === 1 
-                          ? 'bg-blue-100 text-blue-400 cursor-not-allowed' 
+                      className={`relative inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md ${currentPage === 1
+                          ? 'bg-blue-100 text-blue-400 cursor-not-allowed'
                           : 'bg-white text-blue-700 hover:bg-blue-100'
-                      }`}
+                        }`}
                     >
                       Previous
                     </button>
                     <button
                       onClick={nextPage}
                       disabled={currentPage === totalPages}
-                      className={`ml-3 relative inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md ${
-                        currentPage === totalPages 
-                          ? 'bg-blue-100 text-blue-400 cursor-not-allowed' 
+                      className={`ml-3 relative inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md ${currentPage === totalPages
+                          ? 'bg-blue-100 text-blue-400 cursor-not-allowed'
                           : 'bg-white text-blue-700 hover:bg-blue-100'
-                      }`}
+                        }`}
                     >
                       Next
                     </button>
@@ -566,39 +554,36 @@ export default function ApproverDashboard() {
                         <button
                           onClick={prevPage}
                           disabled={currentPage === 1}
-                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-blue-300 bg-white text-sm font-medium ${
-                            currentPage === 1 
-                              ? 'text-blue-300 cursor-not-allowed' 
+                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-blue-300 bg-white text-sm font-medium ${currentPage === 1
+                              ? 'text-blue-300 cursor-not-allowed'
                               : 'text-blue-500 hover:bg-blue-100'
-                          }`}
+                            }`}
                         >
                           <span className="sr-only">Previous</span>
                           <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                         </button>
-                        
+
                         {/* Page numbers */}
                         {[...Array(totalPages)].map((_, index) => (
                           <button
                             key={index}
                             onClick={() => paginate(index + 1)}
-                            className={`relative inline-flex items-center px-4 py-2 border ${
-                              currentPage === index + 1
+                            className={`relative inline-flex items-center px-4 py-2 border ${currentPage === index + 1
                                 ? 'z-10 bg-blue-600 border-blue-600 text-white'
                                 : 'bg-white border-blue-300 text-blue-600 hover:bg-blue-100'
-                            } text-sm font-medium`}
+                              } text-sm font-medium`}
                           >
                             {index + 1}
                           </button>
                         ))}
-                        
+
                         <button
                           onClick={nextPage}
                           disabled={currentPage === totalPages}
-                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-blue-300 bg-white text-sm font-medium ${
-                            currentPage === totalPages 
-                              ? 'text-blue-300 cursor-not-allowed' 
+                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-blue-300 bg-white text-sm font-medium ${currentPage === totalPages
+                              ? 'text-blue-300 cursor-not-allowed'
                               : 'text-blue-500 hover:bg-blue-100'
-                          }`}
+                            }`}
                         >
                           <span className="sr-only">Next</span>
                           <ChevronRight className="h-5 w-5" aria-hidden="true" />
@@ -643,7 +628,7 @@ export default function ApproverDashboard() {
                   </svg>
                 </button>
               </div>
-              
+
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 overflow-y-auto max-h-[70vh] sm:max-h-none">
                 <div className="bg-gradient-to-br from-white to-blue-100 p-4 rounded-md mb-4 shadow-sm">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -690,10 +675,10 @@ export default function ApproverDashboard() {
                           </div>
                         )}
                         {selectedApp.selfiePath ? (
-                          <img 
-                            src={selectedApp.selfiePath} 
-                            alt="Selfie Preview" 
-                            className="max-h-36 max-w-full object-contain" 
+                          <img
+                            src={selectedApp.selfiePath}
+                            alt="Selfie Preview"
+                            className="max-h-36 max-w-full object-contain"
                             onLoad={() => handleImageLoad('selfie')}
                             onError={() => handleImageError('selfie')}
                           />
@@ -705,11 +690,7 @@ export default function ApproverDashboard() {
                     <div>
                       <p className="text-sm font-medium text-blue-600 mb-1">Proof of Address</p>
                       <div className="border border-blue-200 rounded-md p-2 bg-blue-50 h-40 flex items-center justify-center relative">
-                        {mediaLoading.document && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-blue-50 bg-opacity-80">
-                            <Loader className="animate-spin text-blue-600" size={24} />
-                          </div>
-                        )}
+
                         {selectedApp.proofOfAddressPath ? (
                           getDocumentPreview(selectedApp.proofOfAddressPath)
                         ) : (
@@ -743,7 +724,7 @@ export default function ApproverDashboard() {
                   </div>
                 )}
               </div>
-              
+
               <div className="bg-blue-50 px-4 py-3 sm:px-6 flex flex-col sm:flex-row-reverse border-t border-blue-200">
                 {selectedApp.status === 'pending' && (
                   <>
@@ -777,65 +758,6 @@ export default function ApproverDashboard() {
           </div>
         </div>
       )}
-
-      {/* Mobile menu drawer */}
-      {/* {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={toggleMobileMenu}></div>
-          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-blue-900 shadow-xl z-50 transform transition-all ease-in-out duration-300">
-            <div className="flex items-center justify-between px-4 py-6 border-b border-blue-800">
-              <div className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-white mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <h1 className="text-xl font-bold text-white">Webpe Finance</h1>
-              </div>
-              <button 
-                onClick={toggleMobileMenu}
-                className="text-white hover:text-blue-200"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="px-2 py-4">
-              <div className="mb-4 px-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center text-white">
-                    <span className="text-lg font-medium">{getInitials(user.name)}</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{user.name}</p>
-                    <p className="text-xs text-blue-300">{user.email}</p>
-                  </div>
-                </div>
-                <div className="border-t border-blue-800 mt-2 pt-2">
-                  <p className="text-sm text-white font-bold">Role : <span className='font-normal'>{user.userType}</span></p>
-                </div>
-              </div>
-              <div className="mt-2">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center px-4 py-2 text-white hover:bg-blue-700 rounded-md"
-                >
-                  <LogOut size={18} className="mr-2" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )} */}
     </div>
   );
 }
