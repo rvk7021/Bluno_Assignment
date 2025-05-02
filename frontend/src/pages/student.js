@@ -12,11 +12,12 @@ export default function StudentDashboard() {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5); // Reduced from 7 to 5 for better mobile viewing
-
+    
     // Fetch user data from localStorage on component mount
     useEffect(() => {
         try {
             const userData = JSON.parse(localStorage.getItem('user'));
+        
             if (userData) {
                 setUser(userData);
             } else {
@@ -452,6 +453,7 @@ export default function StudentDashboard() {
                         <UserApplicationForm
                             onSuccess={handleFormSuccess}
                             onCancel={() => setShowApplicationForm(false)}
+                            mail={user?.email}
                         />
                     </div>
                 </div>

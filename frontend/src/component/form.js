@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function UserApplicationForm({ onSuccess, onCancel }) {
+export default function UserApplicationForm({ onSuccess, onCancel, mail }) {
     const [formData, setFormData] = useState({
         fullName: "",
-        email: "",
+        email: mail || "", // Default to mail parameter
         phoneNumber: "",
         documentType: "Driving Licence"
     });
@@ -33,12 +33,10 @@ export default function UserApplicationForm({ onSuccess, onCancel }) {
             newErrors.fullName = "Name is required";
         }
         
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Email validation - we don't need to validate as it's pre-filled and read-only
+        // We'll keep minimal validation just in case
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
-        } else if (!emailRegex.test(formData.email)) {
-            newErrors.email = "Please enter a valid email address";
         }
         
         // Phone validation
@@ -78,6 +76,16 @@ export default function UserApplicationForm({ onSuccess, onCancel }) {
             });
         }
     };
+
+    // Effects to update the email whenever mail prop changes
+    useEffect(() => {
+        if (mail) {
+            setFormData(prevData => ({
+                ...prevData,
+                email: mail
+            }));
+        }
+    }, [mail]);
 
     // Camera functions
     const openCamera = async () => {
@@ -438,8 +446,9 @@ export default function UserApplicationForm({ onSuccess, onCancel }) {
                         value={formData.email}
                         placeholder="Email Address"
                         onChange={handleChange}
-                        disabled={loading}
-                        className="w-full bg-blue-50 text-blue-800 py-3 px-4 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-blue-400 disabled:opacity-60"
+                        disabled={true} // Always disabled since we're using mail parameter
+                        readOnly
+                        className="w-full bg-gray-100 text-blue-800 py-3 px-4 rounded-lg border border-blue-200 focus:outline-none transition-all duration-300 placeholder-blue-400 disabled:opacity-60"
                     />
                     {errors.email && (
                         <p className="text-red-500 text-xs mt-1">{errors.email}</p>
