@@ -203,7 +203,7 @@ exports.getAllApplications = async (req, res) => {
         }
 
         const applications = await Application.find()
-            .select('studentName email status submittedAt documentType selfiePath proofOfAddressPath')
+            .select('studentName email status submittedAt documentType selfiePath proofOfAddressPath phoneNumber')
             .sort({ submittedAt: -1 });
             console.log(applications);
         res.status(200).json({
